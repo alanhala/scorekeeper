@@ -219,19 +219,31 @@ playerListHeader =
 
 playerList : Model -> Html Msg
 playerList model =
-    -- ul [] (List.map player model.players)
-    model.players |> List.sortBy .name |> List.map player |> ul []
+    model.players |> List.sortBy .name |> List.map (player model.playerId) |> ul []
 
 
-player : Player -> Html Msg
-player player =
+player : Maybe Int -> Player -> Html Msg
+player editedPlayerId player =
     li []
         [ i [ class "edit", onClick (Edit player) ] []
-        , div [] [ text player.name ]
+        , div [ class (playerNameClass editedPlayerId player) ] [ text player.name ]
         , button [ type_ "button", onClick (Score player 2) ] [ text "2pt" ]
         , button [ type_ "button", onClick (Score player 3) ] [ text "3pt" ]
         , div [] [ text (toString player.points) ]
         ]
+
+
+playerNameClass : Maybe Int -> Player -> String
+playerNameClass editedPlayerId player =
+    case editedPlayerId of
+        Just id ->
+            if player.id == id then
+                "edit"
+            else
+                ""
+
+        Nothing ->
+            ""
 
 
 pointTotal : Model -> Html Msg
@@ -249,10 +261,20 @@ pointTotal model =
 playerForm : Model -> Html Msg
 playerForm model =
     Html.form [ onSubmit Save ]
-        [ input [ type_ "text", placeholder "Add/Edit Player", onInput Input, value model.name ] []
+        [ input [ type_ "text", class (inputClass model.playerId), placeholder "Add/Edit Player", onInput Input, value model.name ] []
         , button [ type_ "submit" ] [ text "Save" ]
         , button [ type_ "button", onClick Cancel ] [ text "Cancel" ]
         ]
+
+
+inputClass : Maybe Int -> String
+inputClass editedPlayerId =
+    case editedPlayerId of
+        Just _ ->
+            "edit"
+
+        Nothing ->
+            ""
 
 
 main : Program Never Model Msg
